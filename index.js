@@ -9,7 +9,7 @@ const server = http.createServer((req, res) => {
   /* handle http requests */
   if (req.url === "/" && req.method === "GET") {
     try {
-      res.writeHead(200, { "Content-Type": "applocation/json" });
+      res.writeHead(200, { "Content-Type": "application/json" });
       res.end(
         JSON.stringify({
           success: true,
