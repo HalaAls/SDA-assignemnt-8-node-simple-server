@@ -1,45 +1,193 @@
 import http from "http";
-// const http = require("http");
+import fs from "fs/promises";
+import { parse } from "querystring";
+
 const PORT = "8080";
-let product = [
-  { id: "1", name: "surface", description: "new tablet", price: 900 },
-  { id: "2", name: "macbook", description: "apple macbook", price: 1200 },
-];
-const server = http.createServer((req, res) => {
-  /* handle http requests */
+
+const errorHandler = (res, statusCode, message) => {
+  res.writeHead(statusCode, { "Content-Type": "application/json" });
+  res.end(
+    JSON.stringify({
+      message: message,
+    })
+  );
+};
+
+const server = http.createServer(async (req, res) => {
   if (req.url === "/" && req.method === "GET") {
     try {
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(
         JSON.stringify({
-          success: true,
           message: "Hello World",
         })
       );
     } catch (error) {
+      errorHandler(res, 500, error.message);
+    }
+  } else if (req.url === "/products" && req.method === "GET") {
+    try {
+      const products = JSON.parse(await fs.readFile("products.json", "utf-8"));
+      res.writeHead(200, { "Content-Type": "application/json" });
       res.end(
         JSON.stringify({
-          success: false,
-          message: error.message,
+          message: "successfuly get products list",
+          products: products,
         })
       );
+    } catch (error) {
+      errorHandler(res, 500, error.message);
     }
-  } else if (req.method === "POST" && req.url === "/") {
+  } else if (req.url === "/" && req.method === "POST") {
+    try {
+      const products = JSON.parse(await fs.readFile("products.json", "utf-8"));
+      let requestData = "";
+      req.on("data", (chunk) => {
+        requestData += chunk;
+      });
+
+      req.on("end", () => {
+        const data = parse(requestData);
+        const newProduct = {
+          id: new Date().getTime().toString(),
+          name: data.name,
+          description: data.description,
+          price: data.price,
+        };
+
+        products.push(newProduct);
+
+        console.log("Received POST request data:");
+        res.writeHead(201, { "Content-Type": "application/json" });
+        res.end(
+          JSON.stringify({
+            message: "New product is received and created.",
+            products: products,
+          })
+        );
+      });
+    } catch (error) {
+      res.end(error.message);
+    }
+  } else if (req.url === "/products" && req.method === "POST") {
     try {
       let requestData = "";
       req.on("data", (chunk) => {
         requestData += chunk;
       });
-      req.on("end", () => {
-        console.log("Received POST request data:", requestData);
-        res.writeHead(200, { "Content-Type": "text/plain" });
-        res.end("New product is received and created.");
+
+      req.on("end", async () => {
+        const data = parse(requestData);
+        const newProduct = {
+          id: new Date().getTime().toString(),
+          name: data.name,
+          description: data.description,
+          price: data.price,
+        };
+
+        const products = JSON.parse(
+          await fs.readFile("products.json", "utf-8")
+        );
+        products.push(newProduct);
+        await fs.writeFile("products.json", JSON.stringify(products));
+
+        console.log("Received POST request data:");
+        res.writeHead(201, { "Content-Type": "application/json" });
+        res.end(
+          JSON.stringify({
+            message: "New product is received and created.",
+            products: products,
+          })
+        );
       });
     } catch (error) {
       res.end(error.message);
     }
+  } else if (req.url.match(/\/products\/([0-9]+)/) && req.method === "GET") {
+    try {
+      const products = JSON.parse(await fs.readFile("products.json", "utf-8"));
+      const productId = req.url.split("/")[2];
+      const product = products.find((product) => product.id === productId);
+      if (!product) {
+        errorHandler(res, 404, "Product Found");
+        return;
+      }
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({
+          message: "successfuly get product by id",
+          products: product,
+        })
+      );
+    } catch (error) {
+      errorHandler(res, 500, error.message);
+    }
+  } else if (req.url.match(/\/products\/([0-9]+)/) && req.method === "DELETE") {
+    try {
+      const products = JSON.parse(await fs.readFile("products.json", "utf-8"));
+      const productId = req.url.split("/")[2];
+      const product = products.find((product) => product.id === productId);
+      if (!product) {
+        errorHandler(res, 404, "Product Found");
+        return;
+      }
+      const filteredProducts = products.filter(
+        (product) => product.id !== productId
+      );
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({
+          message: "successfuly deleted product by id",
+          products: filteredProducts,
+        })
+      );
+    } catch (error) {
+      errorHandler(res, 500, error.message);
+    }
   }
+  // I will come back to this : use findIndex
+  // else if (req.url.match(/\/products\/([0-9]+)/) && req.method === "PUT") {
+  //   try {
+  //     const products = JSON.parse(await fs.readFile("products.json", "utf-8"));
+  //     const productId = req.url.split("/")[2];
+  //     const product = products.find((product) => product.id === productId);
+
+  //     if (!product) {
+  //       errorHandler(res, 404, "Product Found");
+  //       return;
+  //     }
+
+  //     let requestData = "";
+  //     req.on("data", (chunk) => {
+  //       requestData += chunk;
+  //     });
+
+  //     req.on("end", () => {
+  //       const updatedProduct = parse(requestData);
+  //       if (updatedProduct.name) {
+  //         product.name = updatedProduct.name;
+  //       }
+  //       if (updatedProduct.description) {
+  //         product.description = updatedProduct.description;
+  //       }
+  //       if (updatedProduct.price) {
+  //         product.price = updatedProduct.price;
+  //       }
+  //     });
+
+  //     res.writeHead(200, { "Content-Type": "application/json" });
+  //     res.end(
+  //       JSON.stringify({
+  //         message: "successfuly updated product by id",
+  //         product: product,
+  //       })
+  //     );
+  //   } catch (error) {
+  //     errorHandler(res, 500, error.message);
+  //   }
+  // }
 });
+
 server.listen(PORT, () => {
   console.log(`Server running at http://127.0.0.1:${PORT}/`);
 });

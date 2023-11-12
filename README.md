@@ -6,16 +6,16 @@ This repository contains a basic Node.js server application with various feature
 
 In this level, the server application includes the following features:
 
-1. Set up a server that listens on a specified port (e.g., port 8080).
-2. Create a route to handle GET requests to the root URL ("/") and send a "Hello, World!" response.
-3. Implement a route to handle POST requests to the root URL ("/") and log the received data to the console.
+- [x] Set up a server that listens on a specified port (e.g., port 8080).
+- [x] Create a route to handle GET requests to the root URL ("/") and send a "Hello, World!" response.
+- [x] Implement a route to handle POST requests to the root URL ("/") and log the received data to the console.
 
 ## Level 2: Node Server Additional Requirements
 
 In addition to the basic requirements, the server application enhances its functionality with the following features:
 
-1. Create a route to handle GET requests to "/books or /products" and send a response with information accordingly.
-2. Implement a route to handle POST requests to "/books or /products" and save the received data to a file on the server.
+- [x] Create a route to handle GET requests to "/books or /products" and send a response with information accordingly.
+- [] Implement a route to handle POST requests to "/books or /products" and save the received data to a file on the server.
 
 ## Level 3: Node Server Bonus Requirements (Optional)
 
