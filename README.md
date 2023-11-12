@@ -15,7 +15,7 @@ In this level, the server application includes the following features:
 In addition to the basic requirements, the server application enhances its functionality with the following features:
 
 - [x] Create a route to handle GET requests to "/books or /products" and send a response with information accordingly.
-- [] Implement a route to handle POST requests to "/books or /products" and save the received data to a file on the server.
+- [x] Implement a route to handle POST requests to "/books or /products" and save the received data to a file on the server.
 
 ## Level 3: Node Server Bonus Requirements (Optional)
 
