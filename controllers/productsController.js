@@ -3,11 +3,44 @@ import fs from "fs/promises";
 export const getAllProducts = async (req, res) => {
   try {
     const products = JSON.parse(await fs.readFile("products.json", "utf-8"));
-    res.status(200).send({
-      success: true,
-      message: "all products are returned",
-      data: products,
-    });
+    const maxPrice = req.query.maxPrice;
+    const minPrice = req.query.minPrice;
+    let filteredProducts;
+    
+    if (minPrice && maxPrice) {
+      filteredProducts = products.filter((product) => {
+      return  Number(product.price) >= Number(minPrice) &&  Number(product.price) <= Number(maxPrice);
+      });
+      res.status(200).send({
+        success: true,
+        message: `all products between ${minPrice} and ${maxPrice} are returned`,
+        data: filteredProducts,
+      });
+    } else if (maxPrice) {
+      filteredProducts = products.filter(
+        (product) => Number(product.price) <= Number(maxPrice)
+      );
+      res.status(200).send({
+        success: true,
+        message: `all products higher than ${maxPrice} are returned`,
+        data: filteredProducts,
+      });
+    } else if (minPrice) {
+      filteredProducts = products.filter(
+        (product) => Number(product.price) >= Number(minPrice)
+      );
+      res.status(200).send({
+        success: true,
+        message: `all products less than ${minPrice} are returned`,
+        data: filteredProducts,
+      });
+    } else {
+      res.status(200).send({
+        success: true,
+        message: "all products are returned",
+        data: products,
+      });
+    }
   } catch (error) {
     res.status(500).send({
       success: false,
