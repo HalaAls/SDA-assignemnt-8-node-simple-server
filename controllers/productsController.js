@@ -97,9 +97,9 @@ export const createProduct = async (req, res) => {
 };
 
 export const updateProductById = async (req, res) => {
-  const id = req.params.id;
-  const {name, description, price} = req.body;
   try {
+    const id = req.params.id;
+    const { name, description, price } = req.body;
     const products = JSON.parse(await fs.readFile("products.json", "utf-8"));
     const index = products.findIndex((product) => product.id === id);
     if (index == -1) {
@@ -110,8 +110,7 @@ export const updateProductById = async (req, res) => {
       return;
     }
     products[index].name = name ?? products[index].name;
-    products[index].description =
-      description ?? products[index].description;
+    products[index].description = description ?? products[index].description;
     products[index].price = price ?? products[index].price;
 
     await fs.writeFile("products.json", JSON.stringify(products));

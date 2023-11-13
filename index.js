@@ -109,7 +109,7 @@ const server = http.createServer(async (req, res) => {
       const productId = req.url.split("/")[2];
       const product = products.find((product) => product.id === productId);
       if (!product) {
-        errorHandler(res, 404, "Product Found");
+        errorHandler(res, 404, "Product not Found");
         return;
       }
       res.writeHead(200, { "Content-Type": "application/json" });
@@ -128,7 +128,7 @@ const server = http.createServer(async (req, res) => {
       const productId = req.url.split("/")[2];
       const product = products.find((product) => product.id === productId);
       if (!product) {
-        errorHandler(res, 404, "Product Found");
+        errorHandler(res, 404, "Product not Found");
         return;
       }
       const filteredProducts = products.filter(
@@ -144,48 +144,39 @@ const server = http.createServer(async (req, res) => {
     } catch (error) {
       errorHandler(res, 500, error.message);
     }
+  } else if (req.url.match(/\/products\/([0-9]+)/) && req.method === "PUT") {
+    const productId = req.url.split("/")[2];
+    try {
+      const products = JSON.parse(await fs.readFile("products.json", "utf-8"));
+      const index = products.findIndex((product) => product.id === productId);
+      if (index == -1) {
+        errorHandler(res, 404, "Product not Found");
+        return;
+      }
+
+      let requestData = "";
+      req.on("data", (chunk) => {
+        requestData += chunk;
+      });
+      req.on("end", () => {
+        const { name, description, price } = parse(requestData);
+        products[index].name = name ?? products[index].name;
+        products[index].description =
+          description ?? products[index].description;
+        products[index].price = price ?? products[index].price;
+      });
+      await fs.writeFile("products.json", JSON.stringify(products));
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({
+          message: "successfuly updated product by id",
+          product: products[index],
+        })
+      );
+    } catch (error) {
+      errorHandler(res, 500, error.message);
+    }
   }
-  // I will come back to this : use findIndex
-  // else if (req.url.match(/\/products\/([0-9]+)/) && req.method === "PUT") {
-  //   try {
-  //     const products = JSON.parse(await fs.readFile("products.json", "utf-8"));
-  //     const productId = req.url.split("/")[2];
-  //     const product = products.find((product) => product.id === productId);
-
-  //     if (!product) {
-  //       errorHandler(res, 404, "Product Found");
-  //       return;
-  //     }
-
-  //     let requestData = "";
-  //     req.on("data", (chunk) => {
-  //       requestData += chunk;
-  //     });
-
-  //     req.on("end", () => {
-  //       const updatedProduct = parse(requestData);
-  //       if (updatedProduct.name) {
-  //         product.name = updatedProduct.name;
-  //       }
-  //       if (updatedProduct.description) {
-  //         product.description = updatedProduct.description;
-  //       }
-  //       if (updatedProduct.price) {
-  //         product.price = updatedProduct.price;
-  //       }
-  //     });
-
-  //     res.writeHead(200, { "Content-Type": "application/json" });
-  //     res.end(
-  //       JSON.stringify({
-  //         message: "successfuly updated product by id",
-  //         product: product,
-  //       })
-  //     );
-  //   } catch (error) {
-  //     errorHandler(res, 500, error.message);
-  //   }
-  // }
 });
 
 server.listen(PORT, () => {
