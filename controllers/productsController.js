@@ -70,15 +70,15 @@ export const deleteProductById = async (req, res) => {
 };
 
 export const createProduct = async (req, res) => {
-  const body = req.body;
+  const { name, description, price } = req.body;
 
   try {
     const products = JSON.parse(await fs.readFile("products.json", "utf-8"));
     const newProduct = {
       id: new Date().getTime().toString(),
-      name: body.name,
-      description: body.description,
-      price: body.price,
+      name: name,
+      description: description,
+      price: price,
     };
 
     products.push(newProduct);
@@ -98,7 +98,7 @@ export const createProduct = async (req, res) => {
 
 export const updateProductById = async (req, res) => {
   const id = req.params.id;
-  const body = req.body;
+  const {name, description, price} = req.body;
   try {
     const products = JSON.parse(await fs.readFile("products.json", "utf-8"));
     const index = products.findIndex((product) => product.id === id);
@@ -109,10 +109,10 @@ export const updateProductById = async (req, res) => {
       });
       return;
     }
-    products[index].name = body.name ?? products[index].name;
+    products[index].name = name ?? products[index].name;
     products[index].description =
-      body.description ?? products[index].description;
-    products[index].price = body.price ?? products[index].price;
+      description ?? products[index].description;
+    products[index].price = price ?? products[index].price;
 
     await fs.writeFile("products.json", JSON.stringify(products));
     res.status(200).send({
